@@ -1,6 +1,6 @@
 FROM haskell:8
 
-RUN git clone https://github.com/facebook/duckling.git
+RUN git clone https://github.com/tagshelfsrl/duckling.git
 
 RUN mkdir /log
 
@@ -15,6 +15,6 @@ RUN stack setup
 # in parallel. However, this can cause OOM issues as the linking step
 # in GHC can be expensive. If the build fails, try specifying the
 # '-j1' flag to force the build to run sequentially.
-RUN stack build
+RUN stack build -j1
 
 ENTRYPOINT stack exec duckling-example-exe
