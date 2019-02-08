@@ -5,13 +5,31 @@
 
 trigger:
 - master
+- development
+
+pr:
+- master
+- develop
 
 pool:
   vmImage: 'Ubuntu-16.04'
 
 variables:
-  imageName: 'docker.tagshelf.io/tagshelfsrl/duckling:$(build.buildId)'
+  tagshelfRegistry: 'docker.tagshelf.io'
+  imageName: 'tagshelfsrl/duckling'
 
-steps:
-- script: docker build -f Dockerfile -t $(imageName) .
-  displayName: 'docker build'
+jobs:
+  - job: build
+    steps:
+      - script: docker build -f Dockerfile -t $(imageName) .
+        displayName: 'docker build'
+  - job: tagImage
+    steps:
+      - ${{ if eq(build.SourceBranchName, 'master') }}:
+        - script: docker tag $(imageName) "$(tagshelfRegistry)/$(imageName):latest"
+          displayName: 'docker tag master as latest'
+      - ${{ if eq(build.SourceBranchName, 'development') }}:
+        - script: docker tag $(imageName) "$(tagshelfRegistry)/$(imageName):$(build.SourceBranchName)"
+          displayName: 'docker tag development'
+      - script: docker tag $(imageName) "$(tagshelfRegistry)/$(imageName):$(build.SourceBranchName)_$(build.SourceVersion)"
+        displayName: 'docker tag '
