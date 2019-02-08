@@ -12,7 +12,7 @@ WORKDIR /duckling
 # in parallel. However, this can cause OOM issues as the linking step
 # in GHC can be expensive. If the build fails, try specifying the
 # '-j1' flag to force the build to run sequentially.
-ARG J_FLAG="-j1"
+ARG J_FLAG=""
 RUN stack setup && stack build ${J_FLAG}
 
 # add ContainerPilot configuration and env
