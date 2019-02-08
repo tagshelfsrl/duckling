@@ -1,7 +1,7 @@
 # When pulling from the private repo the FQDN must be specified
 # exmple: FROM docker.tagshelf.io/tagshelfsrl/haskell-service
 # by passing --build-arg FQDN=docker.tagshelf.io/
-ARG FQDN=
+ARG FQDN=docker.tagshelf.io/
 FROM ${FQDN}tagshelfsrl/haskell-service
 
 RUN git clone https://github.com/tagshelfsrl/duckling.git
