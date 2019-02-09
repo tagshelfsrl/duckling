@@ -1,0 +1,56 @@
+# Docker image
+# Build a Docker image to deploy, run, or push to a container registry.
+# Add steps that use Docker Compose, tag images, push to a registry, run an image, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+- development
+- feature/*
+- bugfix/*
+- hotfix/*
+
+pr:
+- master
+- develop
+
+pool:
+  vmImage: 'Ubuntu-16.04'
+
+variables:
+  tagshelfRegistry: 'docker.tagshelf.io'
+  imageName: 'tagshelfsrl/duckling'
+
+steps:
+  # Builds the docker image for all allowed branches
+  - script: |
+      docker login -u $(tagshelfRegistryUser) -p $(tagshelfRegistryPass) $(tagshelfRegistry)
+      docker build -f Dockerfile -t $(imageName) .
+    displayName: 'docker build'
+  # Tags builded image with the "latest" tag if its "master" branch and push
+  - script: docker tag $(imageName) "$(tagshelfRegistry)/$(imageName):latest"
+    displayName: 'docker tag master as latest'
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+  - script: |
+      docker login -u $(tagshelfRegistryUser) -p $(tagshelfRegistryPass) $(tagshelfRegistry)
+      docker push $(tagshelfRegistry)/$(imageName):latest
+    displayName: 'docker push master as latest'
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'master'))
+  # Tags builded image with the "development" tag if its "development" branch and push
+  - script: docker tag $(imageName) "$(tagshelfRegistry)/$(imageName):$(build.SourceBranchName)"
+    displayName: 'docker tag development'
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'development'))
+  - script: |
+      docker login -u $(tagshelfRegistryUser) -p $(tagshelfRegistryPass) $(tagshelfRegistry)
+      docker push $(tagshelfRegistry)/$(imageName):$(build.SourceBranchName)
+    displayName: 'docker push development'
+    condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'development'))
+  # Tags builded image with the branchName_commitHash tag if its "master" or "development" branch and push
+  - script: docker tag $(imageName) "$(tagshelfRegistry)/$(imageName):$(build.SourceBranchName)_$(build.SourceVersion)"
+    displayName: 'docker tag branch_version'
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.SourceBranchName'], 'development')))
+  - script: |
+      docker login -u $(tagshelfRegistryUser) -p $(tagshelfRegistryPass) $(tagshelfRegistry)
+      docker push (tagshelfRegistry)/$(imageName):$(build.SourceBranchName)_$(build.SourceVersion)
+    displayName: 'docker push buikd'
+    condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.SourceBranchName'], 'development')))

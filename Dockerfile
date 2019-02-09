@@ -1,20 +1,32 @@
-FROM haskell:8
+# When pulling from the private repo the FQDN must be specified
+# exmple: FROM docker.tagshelf.io/tagshelfsrl/haskell-service
+# by passing --build-arg FQDN=docker.tagshelf.io/
+ARG FQDN=docker.tagshelf.io/
+FROM ${FQDN}tagshelfsrl/haskell-service
 
 RUN git clone https://github.com/tagshelfsrl/duckling.git
 
-RUN mkdir /log
-
 WORKDIR /duckling
 
-RUN apt-get update
-
-RUN apt-get install -qq -y libpcre3 libpcre3-dev build-essential --fix-missing --no-install-recommends
-
-RUN stack setup
 # NOTE:`stack build` will use as many cores as are available to build
 # in parallel. However, this can cause OOM issues as the linking step
 # in GHC can be expensive. If the build fails, try specifying the
 # '-j1' flag to force the build to run sequentially.
-RUN stack build -j1
+ARG J_FLAG=""
+RUN stack setup && stack build ${J_FLAG}
 
-ENTRYPOINT stack exec duckling-example-exe
+# add ContainerPilot configuration and env
+ENV APP_NAME=default-name
+ENV PUB_ADDR=0.0.0.0
+ENV PUB_PORT=8000
+ENV CONSUL_ADDR=localhost:8500
+ENV CONSUL_PORT=8500
+ENV SCHEME=http
+ENV CONSUL_TOKEN=WoWmuchSecure!
+ENV TLS_VERIFY=true
+ENV AGENT_BIND=
+ENV CONTAINERPILOT=/etc/containerpilot.json5
+
+COPY containerpilot.json5 /etc/containerpilot.json5
+
+CMD ["stack", "exec", "duckling-example-exe"]
