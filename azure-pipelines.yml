@@ -51,6 +51,6 @@ steps:
     condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.SourceBranchName'], 'development')))
   - script: |
       docker login -u $(tagshelfRegistryUser) -p $(tagshelfRegistryPass) $(tagshelfRegistry)
-      docker push (tagshelfRegistry)/$(imageName):$(build.SourceBranchName)_$(build.SourceVersion)
+      docker push $(tagshelfRegistry)/$(imageName):$(build.SourceBranchName)_$(build.SourceVersion)
     displayName: 'docker push buikd'
     condition: and(succeeded(), or(eq(variables['Build.SourceBranchName'], 'master'), eq(variables['Build.SourceBranchName'], 'development')))
