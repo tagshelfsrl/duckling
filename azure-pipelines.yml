@@ -25,7 +25,7 @@ steps:
   # Builds the docker image for all allowed branches
   - script: |
       docker login -u $(tagshelfRegistryUser) -p $(tagshelfRegistryPass) $(tagshelfRegistry)
-      docker build --build-arg J_FLAG="-j1" -f Dockerfile -t $(imageName) .
+      docker build -f Dockerfile -t $(imageName) .
     displayName: 'docker build'
   # Tags builded image with the "latest" tag if its "master" branch and push
   - script: docker tag $(imageName) "$(tagshelfRegistry)/$(imageName):latest"
