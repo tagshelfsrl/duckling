@@ -26,12 +26,14 @@
       },
       tags: [
         "{{ .APP_NAME }}",
+        "{{ .ENV }}",
       ],
       interfaces: [
         "static:{{ .PUB_ADDR }}",
-        "eth1",
-        "inet",
-      ]
+      ],
+      consul: {
+        deregisterCriticalServiceAfter: "5m"
+      }
     }
   ]
 }
