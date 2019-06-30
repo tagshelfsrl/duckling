@@ -1,0 +1,39 @@
+{
+  consul: {
+    address: "{{ .CONSUL_ADDR }}:{{.CONSUL_PORT}}",
+    scheme: "{{ .SCHEME }}",
+    token: "{{ .CONSUL_TOKEN }}",
+    tls: {
+      verify: {{ .TLS_VERIFY }}
+    }
+  },
+  logging: {
+    level: "INFO",
+    format: "default",
+    output: "stdout"
+  },
+  jobs: [
+    {
+      name: "{{ .APP_NAME }}",
+      exec: "stack exec duckling-example-exe",
+      restarts: "unlimited",
+      port: {{ .PUB_PORT }},
+      health: {
+        exec: "/usr/bin/curl -XPOST --data 'locale=en_GB&text=tomorrow at eight' --fail -s {{ .PUB_ADDR }}:{{ .PUB_PORT }}/parse",
+        interval: 5,
+        ttl: 10,
+        timeout: "60s"
+      },
+      tags: [
+        "{{ .APP_NAME }}",
+        "{{ .ENV }}",
+      ],
+      interfaces: [
+        "static:{{ .PUB_ADDR }}",
+      ],
+      consul: {
+        deregisterCriticalServiceAfter: "5m"
+      }
+    }
+  ]
+}
